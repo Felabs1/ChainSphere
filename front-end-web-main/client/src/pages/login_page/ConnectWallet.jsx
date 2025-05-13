@@ -1,0 +1,22 @@
+import React from "react";
+import styles from "./ConnectWallet.module.css";
+
+const ConnectWallet = () => {
+  return (
+    <div className={`w3-center`}>
+      <h1 className={styles.heading}>Please Connect Wallet</h1>
+      <p className={styles.message}>
+        You need to connect your wallet to continue to this module
+      </p>
+      <br />
+      <br />
+      <button className={styles.login_button} onClick={handleWalletConnection}>
+        Connect Wallet
+      </button>
+    </div>
+  );
+};
+
+export default ConnectWallet;
+
+// network
