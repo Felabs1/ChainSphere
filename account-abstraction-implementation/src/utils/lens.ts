@@ -2,14 +2,14 @@ import Safe, { type PredictedSafeProps, type SafeDeploymentConfig } from '@safe-
 import { sepolia } from 'viem/chains'
 import SafeApiKit from '@safe-global/api-kit'
 import {
-  // MetaTransactionData,
+  MetaTransactionData,
   OperationType
 } from '@safe-global/types-kit'
 
-const SAFE_ADDRESS = ""
+const SAFE_ADDRESS = "0x40409922a31C0F9ab78Aab27312d609aaD30Ef51"
 
-const OWNER_1_ADDRESS = ""
-const OWNER_1_PRIVATE_KEY = ""
+const OWNER_1_ADDRESS = "0x53f6AFc6f3CaA1303517c04C3a4b820ac1779Dc3"
+const OWNER_1_PRIVATE_KEY = "6f9ac313b876c0e91c317ae47ea4daa1b9207698b9efe036fd2f1f5efb843643"
 
 
 const RPC_URL = sepolia.rpcUrls.default.http[0];
@@ -131,13 +131,52 @@ export async function reinitializeProtocolKit() {
 }
 
 
-const executeTransaction = async () => {
+export const executeLensTransaction = async () => {
   const protocolKitOwner1 = await Safe.init({
     provider: RPC_URL,
     signer: OWNER_1_PRIVATE_KEY,
     safeAddress: SAFE_ADDRESS,
   
   })
+
+  const safeTransactionData: MetaTransactionData = {
+    to: '0xF3bAAfEEFebCC23A9D87118Aa3D96D1bADCC6daB',
+    value: '1000', // 1 wei
+    data: '0x',
+    operation: OperationType.Call
+  }
+  
+  const safeTransaction = await protocolKitOwner1.createTransaction({
+    transactions: [safeTransactionData]
+  })
+
+  const apiKit = new SafeApiKit({
+    chainId: 11155111n
+  })
+
+  // Deterministic hash based on transaction parameters
+const safeTxHash = await protocolKitOwner1.getTransactionHash(safeTransaction)
+
+// Sign transaction to verify that the transaction is coming from owner 1
+const senderSignature = await protocolKitOwner1.signHash(safeTxHash)
+
+await apiKit.proposeTransaction({
+  safeAddress: SAFE_ADDRESS,
+  safeTransactionData: safeTransaction.data,
+  safeTxHash,
+  senderAddress: OWNER_1_ADDRESS,
+  senderSignature: senderSignature.data
+})
+
+const pendingTransactions = (await apiKit.getPendingTransactions(SAFE_ADDRESS)).results
+console.log("Pending transactions: ", pendingTransactions);
+
+
+const executeTxResponse = await protocolKitOwner1.executeTransaction(safeTransaction)
+console.log(executeTxResponse);
+
+
+  
   
 }
 
