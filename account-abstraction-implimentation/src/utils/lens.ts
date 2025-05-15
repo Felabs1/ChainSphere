@@ -1,8 +1,8 @@
-import Safe from '@safe-global/protocol-kit'
+import Safe, { type PredictedSafeProps, type SafeDeploymentConfig } from '@safe-global/protocol-kit'
 import { sepolia } from 'viem/chains'
 import SafeApiKit from '@safe-global/api-kit'
 import {
-  MetaTransactionData,
+  // MetaTransactionData,
   OperationType
 } from '@safe-global/types-kit'
 
@@ -26,11 +26,11 @@ const safeAccountConfig = {
   // More optional properties
 }
 
-const safeDeploymentConfig = {
-  saltNonce: Math.floor(Math.random() * 1000000)
+const safeDeploymentConfig:  SafeDeploymentConfig = {
+  saltNonce: Math.floor(Math.random() * 1000000).toString()
 }
 
-const predictedSafe= {
+const predictedSafe: PredictedSafeProps= {
   safeAccountConfig,
   safeDeploymentConfig // Optional
   // More optional properties
@@ -40,7 +40,6 @@ const getSafeAddress = async() => {
   const protocolKit = await Safe.init({
     provider: sepolia.rpcUrls.default.http[0],
     signer: SIGNER_PRIVATE_KEY,
-    
     predictedSafe
   })
   return await protocolKit.getAddress();
@@ -65,14 +64,16 @@ export async function predictSafeAddress() {
   console.log("executing transaction")
   const client = await protocolKit.getSafeProvider().getExternalSigner()
 
-const transactionHash = await client.sendTransaction({
-  to: deploymentTransaction.to,
-  value: BigInt(deploymentTransaction.value),
-  data: deploymentTransaction.data,
-  chain: sepolia
-})
+  if (!client) return;
 
-console.log(transactionHash)
+  const transactionHash = await client.sendTransaction({
+    to: deploymentTransaction.to,
+    value: BigInt(deploymentTransaction.value),
+    data: deploymentTransaction.data as `0x${string}`,
+    chain: sepolia
+  })
+
+  console.log(transactionHash)
 
 // const transactionReceipt = await client.waitForTransactionReceipt({
 //   hash: transactionHash
