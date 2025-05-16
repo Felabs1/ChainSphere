@@ -16,6 +16,7 @@
     "@safe-global/types-kit": "^2.0.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "thirdweb": "^5.99.1",
     "viem": "^2.29.2"
   },
   "devDependencies": {

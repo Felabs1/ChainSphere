@@ -2,9 +2,10 @@ import Safe, { type PredictedSafeProps, type SafeDeploymentConfig } from '@safe-
 import { sepolia } from 'viem/chains'
 import SafeApiKit from '@safe-global/api-kit'
 import {
-  MetaTransactionData,
+ // MetaTransactionData,
   OperationType
 } from '@safe-global/types-kit'
+import { chains } from "@lens-chain/sdk/viem";
 
 const SAFE_ADDRESS = "0x40409922a31C0F9ab78Aab27312d609aaD30Ef51"
 
@@ -38,10 +39,10 @@ const predictedSafe: PredictedSafeProps= {
 
 const getSafeAddress = async() => {
   const protocolKit = await Safe.init({
-    provider: sepolia.rpcUrls.default.http[0],
-    signer: SIGNER_PRIVATE_KEY,
-    predictedSafe
-  })
+  provider: chains.testnet.rpcUrls.default,
+  signer: process.env.PRIVATE_KEY, // replace with deployer private key
+  predictedSafe,
+  });
   return await protocolKit.getAddress();
 }
 
@@ -139,9 +140,9 @@ export const executeLensTransaction = async () => {
   
   })
 
-  const safeTransactionData: MetaTransactionData = {
+  const safeTransactionData = {
     to: '0xF3bAAfEEFebCC23A9D87118Aa3D96D1bADCC6daB',
-    value: '1000', // 1 wei
+    value: '1', // 1 wei
     data: '0x',
     operation: OperationType.Call
   }
@@ -172,8 +173,14 @@ const pendingTransactions = (await apiKit.getPendingTransactions(SAFE_ADDRESS)).
 console.log("Pending transactions: ", pendingTransactions);
 
 
+try {
 const executeTxResponse = await protocolKitOwner1.executeTransaction(safeTransaction)
-console.log(executeTxResponse);
+console.log(executeTxResponse)
+}catch(error){
+  console.log(error)
+}
+
+
 
 
   
