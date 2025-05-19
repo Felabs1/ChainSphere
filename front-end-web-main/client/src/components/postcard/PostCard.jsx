@@ -4,6 +4,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { BeatLoader } from "react-spinners";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { TransactionButton } from "thirdweb/react";
 import {
   faImage,
   faVideo,
@@ -13,7 +14,7 @@ import {
   faSmile,
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
-
+import { createPost } from "../../contract_interactions/PostManagement";
 import { uploadToIPFS } from "../../Infura";
 import { multilineToSingleline } from "../../utils/AppUtils";
 import dp from "../../assets/chainsphere.png";
@@ -140,7 +141,7 @@ const PostCard = () => {
           </button>
         </div>
 
-        <button
+        {/* <button
           className={`${styles.postButton} ${loading ? styles.loading : ""}`}
           onClick={handleSubmitForm}
           disabled={loading}
@@ -150,7 +151,8 @@ const PostCard = () => {
           ) : (
             "Post Now"
           )}
-        </button>
+        </button> */}
+        <TransactionButton transaction={() => createPost(postContent.current.value, fileURLs.toString())}>Post Now</TransactionButton>
       </div>
 
       <input
