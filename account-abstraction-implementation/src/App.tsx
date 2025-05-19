@@ -3,7 +3,7 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import { predictSafeAddress, reinitializeProtocolKit, generateAccount, executeLensTransaction } from './utils/lens'
 import './App.css'
-import { ConnectButton, TransactionButton } from "thirdweb/react";
+import { ConnectButton, TransactionButton,useActiveAccount } from "thirdweb/react";
 import { client } from './client'
 import { wallets } from './components/Third'
 import { CounterDisplay, DecrementButton, IncrementButton } from './components/ContractInteraction'
