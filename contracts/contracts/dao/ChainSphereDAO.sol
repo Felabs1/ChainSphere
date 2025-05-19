@@ -1,89 +1,83 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "../core/ChainSphereToken.sol";
-import "./IGovernance.sol";
+import "../models/UserModels.sol";
 import "./ProposalLib.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract ChainSphereDAO is IGovernance {
-    struct Proposal {
-        uint256 id;
-        string description;
-        address proposer;
-        uint256 voteYes;
-        uint256 voteNo;
-        uint256 deadline;
-        bool executed;
-        mapping(address => bool) voted;
-    }
+/// @title ChainSphereDAO
+/// @notice Decentralized governance for ChainSphere using proposals and user voting
+contract ChainSphereDAO is Ownable {
+    using UserModels for UserModels.User;
+    using UserModels for UserModels.LightUser;
+    using ProposalLib for ProposalLib.ProposalCore;
 
-    ChainSphereToken public governanceToken;
     uint256 public proposalCount;
-    mapping(uint256 => ProposalLib.ProposalState) public proposals;
 
-    uint256 public votingPeriod = 3 days;
-    address public admin;
+    mapping(uint256 => ProposalLib.ProposalCore) public proposals;
+    mapping(uint256 => mapping(address => ProposalLib.VoteType)) public votes;
+    mapping(address => UserModels.User) public users;
 
-    modifier onlyTokenHolders() {
-        require(governanceToken.balanceOf(msg.sender) > 0, "Must hold CST to participate");
+    event ProposalCreated(uint256 indexed id, address indexed proposer, string description);
+    event VoteCast(uint256 indexed proposalId, address indexed voter, bool support);
+    event ProposalExecuted(uint256 indexed proposalId);
+
+    modifier onlyRegisteredUser() {
+        require(users[msg.sender].userId != address(0), "Not a registered user");
         _;
     }
 
-    modifier onlyAdmin() {
-        require(msg.sender == admin, "Only admin can perform this action");
-        _;
+    constructor() Ownable(msg.sender) {}
+
+    function registerUser(UserModels.User calldata user) external onlyOwner {
+        require(users[user.userId].userId == address(0), "User already registered");
+        users[user.userId] = user;
     }
 
-    event ProposalCreated(uint256 indexed id, address proposer, string description);
-    event Voted(uint256 indexed id, address voter, bool support, uint256 weight);
-    event ProposalExecuted(uint256 indexed id);
-
-    constructor(address _token) {
-        governanceToken = ChainSphereToken(_token);
-        admin = msg.sender;
-    }
-
-    function createProposal(string memory description) external onlyTokenHolders returns (uint256) {
+    function createProposal(string calldata description) external onlyRegisteredUser returns (uint256) {
         proposalCount++;
-        ProposalLib.ProposalState storage p = proposals[proposalCount];
-        p.core.id = proposalCount;
-        p.core.description = description;
-        p.core.proposer = msg.sender;
-        p.core.deadline = block.timestamp + votingPeriod;
+        ProposalLib.ProposalCore storage proposal = proposals[proposalCount];
+        proposal.id = proposalCount;
+        proposal.description = description;
+        proposal.proposer = msg.sender;
+        proposal.deadline = uint64(block.timestamp + 3 days);
+        proposal.executed = false;
 
-        emit ProposalCreated(p.core.id, msg.sender, description);
-        return p.core.id;
+        emit ProposalCreated(proposalCount, msg.sender, description);
+        return proposalCount;
     }
 
-    function vote(uint256 proposalId, bool support) external onlyTokenHolders {
-        ProposalLib.ProposalState storage proposal = proposals[proposalId];
-        require(block.timestamp <= proposal.core.deadline, "Voting period has ended");
-        require(!proposal.hasVoted[msg.sender], "Already voted");
-
-        uint256 weight = governanceToken.balanceOf(msg.sender);
-        proposal.hasVoted[msg.sender] = true;
+    function vote(uint256 proposalId, bool support) external onlyRegisteredUser {
+        ProposalLib.ProposalCore storage proposal = proposals[proposalId];
+        require(block.timestamp < proposal.deadline, "Voting period over");
+        require(votes[proposalId][msg.sender] == ProposalLib.VoteType.None, "Already voted");
 
         if (support) {
-            proposal.core.voteYes += weight;
+            proposal.voteYes++;
+            votes[proposalId][msg.sender] = ProposalLib.VoteType.Yes;
         } else {
-            proposal.core.voteNo += weight;
+            proposal.voteNo++;
+            votes[proposalId][msg.sender] = ProposalLib.VoteType.No;
         }
 
-        emit Voted(proposalId, msg.sender, support, weight);
+        emit VoteCast(proposalId, msg.sender, support);
     }
 
-    function executeProposal(uint256 proposalId) external onlyAdmin {
-        ProposalLib.ProposalState storage proposal = proposals[proposalId];
-        require(!proposal.core.executed, "Already executed");
-        require(block.timestamp > proposal.core.deadline, "Voting not ended yet");
+    function executeProposal(uint256 proposalId) external onlyOwner {
+        ProposalLib.ProposalCore storage proposal = proposals[proposalId];
+        require(block.timestamp >= proposal.deadline, "Voting still ongoing");
+        require(!proposal.executed, "Already executed");
+        require(proposal.voteYes > proposal.voteNo, "Proposal did not pass");
 
-        if (proposal.core.voteYes > proposal.core.voteNo) {
-            proposal.core.executed = true;
-            emit ProposalExecuted(proposalId);
-        }
+        proposal.executed = true;
+        emit ProposalExecuted(proposalId);
     }
 
-    function transferAdmin(address newAdmin) external onlyAdmin {
-        admin = newAdmin;
+    function getUser(address userAddr) external view returns (UserModels.User memory) {
+        return users[userAddr];
+    }
+
+    function getProposal(uint256 id) external view returns (ProposalLib.ProposalCore memory) {
+        return proposals[id];
     }
 }
