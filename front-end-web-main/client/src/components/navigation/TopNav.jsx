@@ -14,6 +14,7 @@ import ConfirmModal from "../confirmModal/ConfirmModal";
 import { ConnectButton } from "thirdweb/react";
 import { client } from "../../client";
 import { wallets } from "../../utils/Third";
+import { ConnectKitButton } from "connectkit";
 
 const TopNav = ({ onMobileMenuClick }) => {
   const [confirm, setConfirm] = useState(false);
@@ -111,7 +112,7 @@ const TopNav = ({ onMobileMenuClick }) => {
           </div>
 
           {/* Connect Wallet Button */}
-          <ConnectButton client={client} wallets={wallets} className={styles.connect_button}>Connect Wallet</ConnectButton>
+          <ConnectKitButton />
 
           {/* Theme Toggle Button */}
           <button

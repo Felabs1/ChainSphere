@@ -91,7 +91,7 @@ contract PostManagement is ChainsphereCore {
     
     function commentOnPost(uint256 postId, string memory content) external {
         address caller = msg.sender;
-        require(userContract.viewUser(caller).userId != address(0), "User not registered");
+        // require(userContract.viewUser(caller).userId != address(0), "User not registered");
         require(postId < postsCount, "Post does not exist");
         
         ChainsphereModels.Comment memory newComment = ChainsphereModels.Comment({

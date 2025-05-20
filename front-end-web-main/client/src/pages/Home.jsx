@@ -18,6 +18,8 @@ import AssetsCard from "../components/rightside/AssetsCard";
 import FollowersCard from "../components/rightside/FollowersCard";
 import { postData, loggedInUser } from "../utils/constants";
 
+import { useAccount } from "wagmi";
+
 import {
   bigintToLongAddress,
   bigintToShortStr,
@@ -35,6 +37,7 @@ const Home = () => {
   const [posts, setPosts] = useState([]);
   const [user, setUser] = useState(null);
   const [users, setUsers] = useState([]);
+ const { address, isConnecting, isDisconnected } = useAccount();
 
   const {
     page,

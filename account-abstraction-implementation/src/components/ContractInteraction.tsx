@@ -12,6 +12,11 @@ export const counterContract = getContract({
   client,
 });
 
+export const PostManagementContract = getContract({
+    address: "0x9D96B5421b4c14A795A21AB1200f36469454c48b",
+    chain: lensTestnet,
+    client,
+})
 // Contract read function for getCount
 export function getCountCall() {
   return {
@@ -19,6 +24,48 @@ export function getCountCall() {
     method: "function getCount() view returns (uint256)",
     params: [] // Adding empty params array to satisfy TypeScript
   };
+}
+
+export function createPostCall(content: string, images: string) {
+  console.log("Preparing createPost call with:", { content, images });
+  
+    return prepareContractCall({
+        contract: PostManagementContract,
+        method:     {
+      inputs: [
+        {
+          internalType: "string",
+          name: "content",
+          type: "string"
+        },
+        {
+          internalType: "string",
+          name: "images",
+          type: "string"
+        }
+      ],
+      name: "createPost",
+      output: [],
+      stateMutability: "nonpayable",
+      type: "function"
+    },
+        params: [content, images],
+        maxPriorityFeePerGas: 5000000000n, // 2 gwei
+    })
+}
+
+export function CreatePostButton({ content, images }: { content: string, images: string }) {
+  return (
+    <TransactionButton
+      transaction={() => createPostCall(content, images)}
+      onError={(error) => {
+        console.error("Post creation failed:", error);
+        // You can add custom error handling here
+      }}
+    >
+      Create Post
+    </TransactionButton>
+  );
 }
 
 // Contract write function for increment

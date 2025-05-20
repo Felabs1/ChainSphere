@@ -18,8 +18,10 @@
     "@safe-global/api-kit": "^3.0.1",
     "@safe-global/protocol-kit": "^6.0.4",
     "@safe-global/types-kit": "^2.0.1",
+    "@tanstack/react-query": "^5.76.1",
     "axios": "^1.7.2",
     "bignumber.js": "^9.1.2",
+    "connectkit": "^1.9.0",
     "dotenv": "^16.4.5",
     "ipfs-http-client": "^60.0.1",
     "lucide-react": "^0.475.0",
@@ -31,9 +33,10 @@
     "react-spinners": "^0.14.1",
     "react-toastify": "^10.0.5",
     "starknetkit-latest": "npm:starknetkit@^1.1.9",
-    "thirdweb": "^5.99.3",
+    "thirdweb": "^5.99.1",
     "viem": "^2.29.4",
     "w3-css": "^4.1.0",
+    "wagmi": "^2.15.4",
     "zustand": "^5.0.2"
   },
   "devDependencies": {

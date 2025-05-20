@@ -4,7 +4,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { BeatLoader } from "react-spinners";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { TransactionButton } from "thirdweb/react";
+import { TransactionButton,useSendAndConfirmTransaction } from "thirdweb/react";
 import {
   faImage,
   faVideo,
@@ -18,13 +18,19 @@ import { createPost } from "../../contract_interactions/PostManagement";
 import { uploadToIPFS } from "../../Infura";
 import { multilineToSingleline } from "../../utils/AppUtils";
 import dp from "../../assets/chainsphere.png";
+import { IncrementButton } from "../../contract_interactions/PostManagement";
+import { useAccount } from "wagmi";
 
 const PostCard = () => {
+
+
   const fileInputRef = useRef(null);
   const postContent = useRef();
   const [fileURLs, setFileURLs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+   const { mutateAsync: sendTx } = useSendAndConfirmTransaction();
+   const { address, isConnecting, isDisconnected } = useAccount();
 
   const handleFileClick = () => {
     fileInputRef.current.click();
@@ -70,6 +76,14 @@ const PostCard = () => {
       setUploadProgress(0);
     }
   };
+
+  const post = () =>{
+    try {
+      return sendTx(createPost("hello", "fileURLs.toString()"))
+    }catch(e){
+      console.log(e)
+    }
+  }
 
   return (
     <div className={styles.postCard}>
@@ -143,7 +157,7 @@ const PostCard = () => {
 
         {/* <button
           className={`${styles.postButton} ${loading ? styles.loading : ""}`}
-          onClick={handleSubmitForm}
+          onClick={async () => await sendTx(createPost("hello", "fileURLs.toString()"))}
           disabled={loading}
         >
           {loading ? (
@@ -152,9 +166,9 @@ const PostCard = () => {
             "Post Now"
           )}
         </button> */}
-        <TransactionButton transaction={() => createPost(postContent.current.value, fileURLs.toString())}>Post Now</TransactionButton>
+      <TransactionButton transaction={() => createPost(postContent.current.value, fileURLs.toString())}>Post Now</TransactionButton>
+    
       </div>
-
       <input
         type="file"
         ref={fileInputRef}
